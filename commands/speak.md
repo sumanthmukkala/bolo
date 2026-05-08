@@ -31,6 +31,14 @@ Kill any audio currently playing.
 killall afplay 2>/dev/null && echo "✓ silenced" || echo "(nothing playing)"
 ```
 
+### Mode 2b: `/speak hush`
+
+Kill current audio **and** skip the next auto-read in one go. Useful when you want Bolo silent for the next exchange too, not just the current one.
+
+```bash
+"${BOLO_HOME:-$HOME/.local/share/bolo}/bin/bolo" --hush
+```
+
 ### Mode 3: `/speak skip`
 
 Skip the NEXT auto-read only.

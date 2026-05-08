@@ -1,10 +1,12 @@
-# Bolo
+# Bolo — your terminal talker
 
 > Local TTS for the terminal — Kokoro voice with a live subtitle HUD synced to playback.
 
 Bolo (Hindi: *"speak"*) reads any text aloud through your terminal using a fully local Kokoro TTS model — no API calls, no tokens, no network. While the audio plays, a single-line subtitle HUD appears in the input area at the bottom of your terminal and advances in sync with the voice, so you can glance down to see exactly where in the text the voice is right now without having to re-read from the top.
 
-It ships out of the box with a Claude Code integration: every assistant response gets spoken as soon as it finishes, with the HUD running below it. Use it for accessibility, eyes-free work, dictation-driven coding workflows, or just listening to your AI agent while you make coffee.
+**Designed for terminal-native AI agents.** Bolo reads responses from agentic CLIs out loud — Claude Code, Hermes, Codex CLI, Aider, Cursor's terminal, Open Hands, and any other agent that prints to a terminal. Claude Code has the deepest integration: auto-read via Stop hook, plus `/speak`, `/voice`, and `/hush` slash commands. Other agents use the `bolo` CLI directly or via a tool-specific skill — see [`docs/usage.md`](./docs/usage.md).
+
+**Also useful as a plain terminal tool**, with no agent required. Pipe any text in: `cat article.md | bolo`, `pbpaste | bolo`, `curl -s url | bolo`. Listen to docs and articles while you write code in another window, get accessibility-friendly read-aloud for low-vision users, or use it for dictation-driven workflows where you want eyes free.
 
 54 voices across 9 languages. Mac-only for v0.1 — Linux and Windows on the roadmap.
 
@@ -19,6 +21,21 @@ It ships out of the box with a Claude Code integration: every assistant response
 - **Pipelined synthesis.** Producer-consumer queue means the next paragraph is synthesised in a background thread while the current one plays. Zero gaps between paragraphs after the first.
 - **Claude Code integration.** Stop hook auto-reads each response. Slash commands `/speak`, `/voice`. Works in Warp, iTerm2, and the macOS terminal.
 - **54 voices, 9 languages.** American, British, Hindi, Spanish, French, Italian, Japanese, Mandarin, Portuguese — both genders.
+
+---
+
+## Where it works
+
+| Surface | Audio playback | Live HUD subtitle | Slash commands |
+|---|---|---|---|
+| **Claude Code CLI** (Warp / iTerm2 / Terminal.app) | ✓ | ✓ | ✓ |
+| **Claude Code Desktop** (Mac & Windows) | ✓ | ✗ — no terminal stderr | ✓ |
+| **Claude Code Web** (claude.ai/code) | ✗ — hooks don't run in browser sandbox | ✗ | ✗ |
+| **VS Code / JetBrains extension** | ✓ if Stop hook fires (CLI must also be installed) | only if extension surfaces a terminal pane | ✓ |
+| **Other agent CLIs** (Hermes, Aider, Open Hands, Cursor terminal) | ✓ via direct `bolo` invocation | ✓ when invoked from a real terminal | varies — see [`docs/usage.md`](./docs/usage.md) |
+| **Standalone (no agent at all)** | ✓ | ✓ | n/a |
+
+The HUD subtitle requires a real terminal to render its ANSI escape codes — it cannot draw inside a web chat panel or a non-terminal desktop UI. Audio plays through the system speaker regardless of where Bolo is invoked from. So in Claude Code Desktop you will hear the voice but not see the subtitle; in the CLI you get both.
 
 ---
 
@@ -131,7 +148,8 @@ The full table — everything you can do, in every environment.
 | **Read last response** | `/speak last` | (Claude Code only) |
 | **Auto-read every response — ON** | `/speak auto on` | `jq '.auto_read=true' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
 | **Auto-read every response — OFF** | `/speak auto off` | `jq '.auto_read=false' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
-| **Stop audio playing right now** | `/speak stop` | `killall afplay` |
+| **Stop audio playing right now** | `/speak stop` | `killall afplay` &nbsp;or&nbsp; `bolo --hush` |
+| **Hush — stop now AND skip next auto-read** | `/hush` &nbsp;(or `/speak hush`) | `bolo --hush` |
 | **Skip the next auto-read once** | `/speak skip` | `touch ~/.local/share/bolo/skip-next` |
 | **List all 54 voices** | `/voice list` | `bolo --list-voices` |
 | **Switch active voice** | `/voice <name>` | edit `active_voice` in `~/.local/share/bolo/config.json` |
@@ -171,6 +189,37 @@ Add this Stop hook entry to `~/.claude/settings.json`:
 ```
 
 Then run `/speak auto on` once. Every assistant response will read aloud with the live HUD subtitle until you `/speak auto off`.
+
+### Silencing fast (mid-playback)
+
+Three paths, in order of speed:
+
+1. **`/hush` slash command** in Claude Code — five keystrokes, kills audio + skips next auto-read.
+2. **Type any character + Enter** in the active Claude Code session. The `UserPromptSubmit` hook fires `kill-on-submit.sh` before your message reaches the model, so audio dies the moment you press Enter. Use this when you want to send a follow-up turn anyway.
+3. **`bolo --hush`** in any terminal tab or window — silences from outside the active Claude Code session, no turn burned.
+
+### Optional: OS-level keyboard shortcut
+
+To silence Bolo from anywhere on your Mac without switching context, bind a hotkey:
+
+**Karabiner-Elements** — add to `~/.config/karabiner/karabiner.json` under your active profile's `complex_modifications.rules`:
+
+```json
+{
+  "description": "Bolo hush — kill audio + skip next",
+  "manipulators": [
+    {
+      "from": { "key_code": "f13" },
+      "to": [{ "shell_command": "$HOME/.local/share/bolo/bin/bolo --hush" }],
+      "type": "basic"
+    }
+  ]
+}
+```
+
+Replace `f13` with whatever key you want. Now any time audio plays, one keystroke from anywhere on your system silences it.
+
+**macOS Shortcuts.app** — create a shortcut that runs `~/.local/share/bolo/bin/bolo --hush` and assign a global keyboard trigger in System Settings → Keyboard → Keyboard Shortcuts → Services.
 
 ### Other environments (Hermes, Cursor, Aider, etc.)
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bolo — local TTS for the terminal, with a live HUD subtitle synced to playback.
+"""Bolo — your terminal talker. Local TTS with a live HUD subtitle synced to playback.
 
 Usage:
   bolo [--voice <name>] [--speed <float>] [--no-play] <text>
@@ -313,12 +313,21 @@ def main():
     p.add_argument("--no-play", action="store_true", help="Generate audio file but don't play")
     p.add_argument("--lang", default="en-us", help="Language hint (en-us, en-gb, hi)")
     p.add_argument("--list-voices", action="store_true", help="Print all available voices and exit")
+    p.add_argument("--hush", action="store_true", help="Kill current audio and skip the next auto-read (silences Bolo from any terminal)")
     p.add_argument("--version", action="version", version=f"{__name_pretty__} {__version__} ({__license__}, engine: {__engine__})")
     p.add_argument("text", nargs="*", help="Text to speak (or pipe via stdin)")
     args = p.parse_args()
 
     if args.list_voices:
         sys.exit(_list_voices())
+
+    if args.hush:
+        subprocess.run(["killall", "afplay"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        skip_flag = BOLO_HOME / "skip-next"
+        skip_flag.parent.mkdir(parents=True, exist_ok=True)
+        skip_flag.touch()
+        print("✓ hushed — audio killed, next auto-read suppressed")
+        sys.exit(0)
 
     cfg = load_config()
     voice = args.voice or cfg.get("active_voice", "am_michael")

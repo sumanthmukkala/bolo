@@ -1,7 +1,7 @@
 [project]
 name = "bolo"
 version = "0.1.0"
-description = "Local TTS for terminal — Kokoro voice with live-subtitle HUD synced to audio"
+description = "Bolo — your terminal talker. Local Kokoro TTS with live subtitle HUD synced to playback."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Sumanth Mukkala" }]
