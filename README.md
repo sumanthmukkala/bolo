@@ -79,7 +79,7 @@ flowchart TD
 
 ### Hardware
 
-- **macOS** — Apple Silicon (M1/M2/M3/M4) recommended for sub-second warm synthesis. Intel Macs work but synthesis is 2–4× slower.
+- **macOS** — Apple Silicon (M1 / M2 / M3 / M4 / M5) recommended for sub-second warm synthesis. Bolo was built and primarily tested on an M5 MacBook. Intel Macs work but synthesis is 2–4× slower.
 - **RAM:** 1.5 GB free during synthesis (model + ONNX runtime + audio buffers).
 - **Disk:** ~400 MB total — Kokoro model (~310 MB) + voices file (~28 MB) + venv (~60 MB).
 - **Audio output** — any Mac speaker or paired Bluetooth/output device.
@@ -281,7 +281,7 @@ Recommended starting voices: `am_michael` (default, neutral American male), `am_
 
 ## Latency
 
-Measured on Apple Silicon (M-series):
+Measured on M5 MacBook (Apple Silicon, M-series numbers should be similar):
 
 | Phase | Time |
 |---|---|
