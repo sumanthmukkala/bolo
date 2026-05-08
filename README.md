@@ -121,33 +121,40 @@ source ~/.zshrc
 
 ---
 
-## Usage
+## Controls
 
-### Standalone CLI
+The full table — everything you can do, in every environment.
+
+| What you want | Claude Code (slash) | Standalone CLI / any terminal |
+|---|---|---|
+| **Speak text now** | `/speak <text>` | `bolo "<text>"` &nbsp;or&nbsp; `echo "<text>" \| bolo` |
+| **Read last response** | `/speak last` | (Claude Code only) |
+| **Auto-read every response — ON** | `/speak auto on` | `jq '.auto_read=true' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
+| **Auto-read every response — OFF** | `/speak auto off` | `jq '.auto_read=false' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
+| **Stop audio playing right now** | `/speak stop` | `killall afplay` |
+| **Skip the next auto-read once** | `/speak skip` | `touch ~/.local/share/bolo/skip-next` |
+| **List all 54 voices** | `/voice list` | `bolo --list-voices` |
+| **Switch active voice** | `/voice <name>` | edit `active_voice` in `~/.local/share/bolo/config.json` |
+| **Preview a voice (no switch)** | `/voice sample <name>` | `bolo --voice <name> "Hello, this is <name>"` |
+| **One-off voice override** | (use sample, then switch) | `bolo --voice af_bella "Different voice"` |
+| **One-off speed override** | — | `bolo --speed 1.2 "Faster"` |
+| **Show current config** | `/speak` (no args) | `cat ~/.local/share/bolo/config.json` |
+| **Show version + license** | — | `bolo --version` |
+
+### Quick examples
 
 ```bash
-bolo "Hello world."                      # speak inline text
-echo "Long text from a file" | bolo      # pipe stdin
-bolo --voice af_bella "Different voice"  # one-shot voice override
-bolo --speed 1.2 "Faster"                # speed override
-bolo --list-voices                       # list all 54 voices
-bolo --version                            # version + license
+# Standalone reading
+bolo "Hello world."
+cat article.txt | bolo
+curl -s https://example.com/article.txt | bolo
+pbpaste | bolo                            # macOS clipboard
+bolo --speed 1.4 "$(cat long-document.txt)"
 ```
 
-### Claude Code
+### Enabling auto-read in Claude Code
 
-After installing, these slash commands are available in any Claude Code session:
-
-- `/speak <text>` — read text now
-- `/speak last` — re-read the last assistant response
-- `/speak stop` — kill audio
-- `/speak skip` — skip the next auto-read once
-- `/speak auto on|off` — toggle persistent auto-read on Stop
-- `/voice list` — list all 54 voices
-- `/voice <name>` — switch active voice
-- `/voice sample <name>` — preview a voice without changing the active one
-
-To enable auto-read of every response, add the Stop hook to `~/.claude/settings.json`:
+Add this Stop hook entry to `~/.claude/settings.json`:
 
 ```json
 {
@@ -163,7 +170,11 @@ To enable auto-read of every response, add the Stop hook to `~/.claude/settings.
 }
 ```
 
-Then `/speak auto on` to enable, `/speak auto off` to disable.
+Then run `/speak auto on` once. Every assistant response will read aloud with the live HUD subtitle until you `/speak auto off`.
+
+### Other environments (Hermes, Cursor, Aider, etc.)
+
+The CLI works anywhere. For agent-specific integration (where `/speak` is not natively available, or where you want auto-read on agent Stop events), see [`docs/usage.md`](./docs/usage.md) for per-environment recipes.
 
 ---
 
@@ -265,6 +276,30 @@ Key design choices:
 - [ ] **Linux + Windows support** via `sounddevice` (PortAudio) replacing `afplay`.
 - [ ] **Streaming synthesis** so audio starts before the full paragraph is rendered.
 - [ ] **Word-level highlight within sub-chunks** for full karaoke-style read-along.
+
+---
+
+## Best practices
+
+### Use full prose, not terse fragments
+
+Bolo sounds best when responses are written as flowing prose with complete sentences. Out of the box most assistants already do this and you do not need to change anything.
+
+**The only thing to be aware of:** if you happen to run a terse-output mode that drops articles or favours sentence fragments — Claude Code's [caveman](https://github.com/anthropics/claude-code) plugin is one example, but any custom system prompt that asks for compressed output qualifies — that style will read aloud as a staccato robotic stream because TTS prosody depends on connectives the ear expects.
+
+If and only if you use such a mode, configure it to **switch to flowing prose whenever Bolo's auto-read is on**. A drop-in snippet you can paste into your `CLAUDE.md`, system prompt, or assistant config:
+
+> When `~/.local/share/bolo/config.json` has `"auto_read": true`, write responses as flowing prose with complete sentences and natural connectives. Resume terse mode only when auto_read is false.
+
+A copy of this snippet lives at [`docs/agent-prompt-snippet.md`](./docs/agent-prompt-snippet.md) for easy paste.
+
+### Toggle auto-read for code-heavy turns
+
+`skip_code_blocks: true` already strips fenced code, but a long debugging turn that is mostly stack traces and JSON will still be tedious to listen to. Use `/speak auto off` for the duration of code-heavy work and `/speak auto on` again when you go back to prose.
+
+### Pick a voice that suits your listening duration
+
+`am_michael` (default) is neutral for short bursts. For long-form (articles, papers, transcripts), `am_puck` is warmer, `bm_george` is more measured, `af_bella` is the clearest American female. `/voice sample <name>` previews any voice without changing the active one.
 
 ---
 
