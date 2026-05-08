@@ -95,13 +95,23 @@ def _stop_requested() -> bool:
     return (BOLO_HOME / "stop-now").exists()
 
 
-def _clear_stop_sentinel() -> None:
-    flag = BOLO_HOME / "stop-now"
+def _skip_para_requested() -> bool:
+    """True if another shell invoked `bolo --skip-paragraph`."""
+    return (BOLO_HOME / "skip-paragraph").exists()
+
+
+def _clear_sentinel(name: str) -> None:
+    flag = BOLO_HOME / name
     if flag.exists():
         try:
             flag.unlink()
         except FileNotFoundError:
             pass
+
+
+def _clear_stop_sentinel() -> None:
+    _clear_sentinel("stop-now")
+    _clear_sentinel("skip-paragraph")
 
 
 def load_kokoro():
@@ -252,6 +262,11 @@ def play_with_sentence_hud(
             if _stop_requested():
                 proc.terminate()
                 break
+            # Skip just this paragraph if `bolo --skip-paragraph` was invoked.
+            if _skip_para_requested():
+                proc.terminate()
+                _clear_sentinel("skip-paragraph")
+                break
             elapsed = time.monotonic() - start
             while current < len(schedule) - 1 and elapsed >= schedule[current][2]:
                 current += 1
@@ -331,7 +346,9 @@ def main():
     p.add_argument("--no-play", action="store_true", help="Generate audio file but don't play")
     p.add_argument("--lang", default="en-us", help="Language hint (en-us, en-gb, hi)")
     p.add_argument("--list-voices", action="store_true", help="Print all available voices and exit")
-    p.add_argument("--hush", action="store_true", help="Kill current audio and skip the next auto-read (silences Bolo from any terminal)")
+    p.add_argument("--hush", action="store_true", help="Full dead stop: kill audio and exit the running Bolo. Does NOT touch the next assistant turn.")
+    p.add_argument("--skip-paragraph", action="store_true", help="Skip the current paragraph, continue with the rest of the response.")
+    p.add_argument("--skip-next-turn", action="store_true", help="Suppress auto-read on the NEXT assistant turn only. Doesn't touch current playback.")
     p.add_argument("--version", action="version", version=f"{__name_pretty__} {__version__} ({__license__}, engine: {__engine__})")
     p.add_argument("text", nargs="*", help="Text to speak (or pipe via stdin)")
     args = p.parse_args()
@@ -340,14 +357,27 @@ def main():
         sys.exit(_list_voices())
 
     if args.hush:
-        # 1. Tell any running Bolo process to stop iterating (sentinel file checked by main loop).
+        # Full dead stop on the CURRENT Bolo process: drop sentinel + kill audio.
+        # Does NOT touch the next-turn skip flag — that's a separate `--skip-next-turn` concern.
         BOLO_HOME.mkdir(parents=True, exist_ok=True)
         (BOLO_HOME / "stop-now").touch()
-        # 2. Kill the currently-playing afplay so the running Bolo's playback loop exits.
         subprocess.run(["killall", "afplay"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # 3. Suppress the next auto-read (independent flag, also checked by Stop hook).
+        print("✓ hushed — audio stopped, running Bolo signalled to exit")
+        sys.exit(0)
+
+    if args.skip_paragraph:
+        # Skip the current paragraph only; let the running Bolo continue with the rest.
+        BOLO_HOME.mkdir(parents=True, exist_ok=True)
+        (BOLO_HOME / "skip-paragraph").touch()
+        subprocess.run(["killall", "afplay"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("✓ skipping current paragraph — playback continues with the next one")
+        sys.exit(0)
+
+    if args.skip_next_turn:
+        # Suppress the next auto-read on Stop hook; doesn't touch current playback.
+        BOLO_HOME.mkdir(parents=True, exist_ok=True)
         (BOLO_HOME / "skip-next").touch()
-        print("✓ hushed — audio killed, running Bolo signalled to stop, next auto-read suppressed")
+        print("✓ next auto-read suppressed")
         sys.exit(0)
 
     cfg = load_config()

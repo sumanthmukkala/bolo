@@ -25,18 +25,10 @@ print('auto_read =', data['auto_read'])
 
 ### Mode 2: `/speak stop`
 
-Kill any audio currently playing.
+Kill any audio currently playing without aborting the running Bolo. *(For full dead stop, use `/hush` instead — it both kills the current audio and signals the running Bolo to exit cleanly.)*
 
 ```bash
 killall afplay 2>/dev/null && echo "✓ silenced" || echo "(nothing playing)"
-```
-
-### Mode 2b: `/speak hush`
-
-Kill current audio **and** skip the next auto-read in one go. Useful when you want Bolo silent for the next exchange too, not just the current one.
-
-```bash
-"${BOLO_HOME:-$HOME/.local/share/bolo}/bin/bolo" --hush
 ```
 
 ### Mode 3: `/speak skip`

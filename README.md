@@ -148,9 +148,10 @@ The full table — everything you can do, in every environment.
 | **Read last response** | `/speak last` | (Claude Code only) |
 | **Auto-read every response — ON** | `/speak auto on` | `jq '.auto_read=true' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
 | **Auto-read every response — OFF** | `/speak auto off` | `jq '.auto_read=false' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
-| **Stop audio playing right now** | `/speak stop` | `killall afplay` &nbsp;or&nbsp; `bolo --hush` |
-| **Hush — stop now AND skip next auto-read** | `/hush` &nbsp;(or `/speak hush`) | `bolo --hush` |
-| **Skip the next auto-read once** | `/speak skip` | `touch ~/.local/share/bolo/skip-next` |
+| **Hush — full dead stop on current response** | `/hush` | `bolo --hush` |
+| **Skip current paragraph, continue rest** | `/hush para` | `bolo --skip-paragraph` |
+| **Stop audio without aborting Bolo** *(rarely needed)* | `/speak stop` | `killall afplay` |
+| **Skip the NEXT assistant turn's auto-read** | `/speak skip` | `bolo --skip-next-turn` |
 | **List all 54 voices** | `/voice list` | `bolo --list-voices` |
 | **Switch active voice** | `/voice <name>` | edit `active_voice` in `~/.local/share/bolo/config.json` |
 | **Preview a voice (no switch)** | `/voice sample <name>` | `bolo --voice <name> "Hello, this is <name>"` |
