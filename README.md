@@ -199,6 +199,17 @@ Three paths, in order of speed:
 2. **Type any character + Enter** in the active Claude Code session. The `UserPromptSubmit` hook fires `kill-on-submit.sh` before your message reaches the model, so audio dies the moment you press Enter. Use this when you want to send a follow-up turn anyway.
 3. **`bolo --hush`** in any terminal tab or window — silences from outside the active Claude Code session, no turn burned.
 
+### Optional: shell aliases (faster than slash commands)
+
+The fastest path to silence is a plain shell alias — no Claude Code parsing, no tool-permission step, just direct exec. Add to your `~/.zshrc` (or `~/.bashrc`):
+
+```bash
+alias hush='~/.local/share/bolo/bin/bolo --hush'
+alias skip='~/.local/share/bolo/bin/bolo --skip-paragraph'
+```
+
+Then `source ~/.zshrc` or open a new shell. Now from any terminal: `hush` for full stop, `skip` for paragraph skip. Four keystrokes, zero latency.
+
 ### Optional: OS-level keyboard shortcut
 
 To silence Bolo from anywhere on your Mac without switching context, bind a hotkey:
