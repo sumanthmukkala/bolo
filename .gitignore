@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtualenv
+venv/
+.venv/
+
+# Models — too large for git, downloaded by install.sh
+models/
+*.onnx
+*.bin
+*.wav
+
+# Local config
+config.json
+chatterbox-config.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
