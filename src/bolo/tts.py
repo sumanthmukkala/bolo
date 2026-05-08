@@ -90,6 +90,20 @@ def chunk_text(text: str, max_chars: int) -> list[str]:
     return chunks
 
 
+def _stop_requested() -> bool:
+    """True if another shell invoked `bolo --hush` and dropped the stop sentinel."""
+    return (BOLO_HOME / "stop-now").exists()
+
+
+def _clear_stop_sentinel() -> None:
+    flag = BOLO_HOME / "stop-now"
+    if flag.exists():
+        try:
+            flag.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def load_kokoro():
     from kokoro_onnx import Kokoro
     return Kokoro(MODEL, VOICES)
@@ -234,6 +248,10 @@ def play_with_sentence_hud(
         hud_print(sentence_offset + s_idx + 1, total_sentences, part)
     try:
         while proc.poll() is None:
+            # Bail out fast if `bolo --hush` was invoked from another shell.
+            if _stop_requested():
+                proc.terminate()
+                break
             elapsed = time.monotonic() - start
             while current < len(schedule) - 1 and elapsed >= schedule[current][2]:
                 current += 1
@@ -322,11 +340,14 @@ def main():
         sys.exit(_list_voices())
 
     if args.hush:
+        # 1. Tell any running Bolo process to stop iterating (sentinel file checked by main loop).
+        BOLO_HOME.mkdir(parents=True, exist_ok=True)
+        (BOLO_HOME / "stop-now").touch()
+        # 2. Kill the currently-playing afplay so the running Bolo's playback loop exits.
         subprocess.run(["killall", "afplay"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        skip_flag = BOLO_HOME / "skip-next"
-        skip_flag.parent.mkdir(parents=True, exist_ok=True)
-        skip_flag.touch()
-        print("✓ hushed — audio killed, next auto-read suppressed")
+        # 3. Suppress the next auto-read (independent flag, also checked by Stop hook).
+        (BOLO_HOME / "skip-next").touch()
+        print("✓ hushed — audio killed, running Bolo signalled to stop, next auto-read suppressed")
         sys.exit(0)
 
     cfg = load_config()
@@ -361,17 +382,22 @@ def main():
     hud_default = cfg.get("hud", True)
     hud_enabled = hud_default and not args.no_play and sys.stderr.isatty()
 
+    # Clear any stale stop-now sentinel from a previous interrupted run before we start.
+    _clear_stop_sentinel()
+
     kokoro = load_kokoro()
 
     # Producer: synth paragraphs in a worker thread so the next paragraph is
     # ready before the current one finishes playing. Eliminates inter-paragraph
-    # gaps after the first.
+    # gaps after the first. Bails out early if `bolo --hush` is invoked.
     q: "queue.Queue[tuple[Path, float] | None]" = queue.Queue(maxsize=2)
     producer_err: list[BaseException] = []
 
     def producer() -> None:
         try:
             for para in paragraphs:
+                if _stop_requested():
+                    break
                 wav, duration = synthesize(kokoro, para, voice, speed, lang)
                 q.put((wav, duration))
         except BaseException as e:
@@ -385,6 +411,8 @@ def main():
     sentence_offset = 0
     try:
         for sentences in para_sentences:
+            if _stop_requested():
+                break
             item = q.get()
             if item is None:
                 break
@@ -400,11 +428,15 @@ def main():
                 total_sentences,
                 hud_enabled,
             )
+            if _stop_requested():
+                break
             sentence_offset += len(sentences)
     finally:
         if hud_enabled:
             hud_clear()
         worker.join(timeout=5.0)
+        # Always clear our own stop sentinel on exit so the next run starts clean.
+        _clear_stop_sentinel()
         if producer_err:
             raise producer_err[0]
 
