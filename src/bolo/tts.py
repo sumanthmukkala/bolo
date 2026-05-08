@@ -367,9 +367,13 @@ def main():
 
     if args.skip_paragraph:
         # Skip the current paragraph only; let the running Bolo continue with the rest.
+        # Sentinel ONLY — no killall here. Killall would race the running Bolo's 50 ms
+        # poll: proc.poll() returns non-None before the sentinel branch fires, the loop
+        # exits without clearing the sentinel, and the next paragraph also gets skipped.
+        # Pure sentinel = running Bolo handles afplay termination + sentinel clear in
+        # one atomic branch. ~50 ms perceived latency, imperceptible.
         BOLO_HOME.mkdir(parents=True, exist_ok=True)
         (BOLO_HOME / "skip-paragraph").touch()
-        subprocess.run(["killall", "afplay"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("✓ skipping current paragraph — playback continues with the next one")
         sys.exit(0)
 
