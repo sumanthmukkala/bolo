@@ -39,15 +39,11 @@ The HUD subtitle requires a real terminal to render its ANSI escape codes — it
 
 ---
 
-## Quick demo
+## Demo
 
-```text
-$ echo "Hello from Bolo. This subtitle is pinned to the bottom of your terminal." | bolo
-▶ [1/2] Hello from Bolo.
-▶ [2/2] This subtitle is pinned to the bottom of your terminal.
-```
+![Bolo demo — HUD subtitle synced to playback](./assets/demo.svg)
 
-The HUD line rewrites itself in place as the audio progresses. When playback ends, the line clears and you are back at your normal prompt.
+The HUD line rewrites itself in place as the audio progresses. The recording is silent (asciinema captures terminal text only, not audio) — install Bolo locally to hear the voice. The visual sync is what makes Bolo distinctive.
 
 ---
 
