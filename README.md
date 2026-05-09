@@ -41,9 +41,17 @@ The HUD subtitle requires a real terminal to render its ANSI escape codes — it
 
 ## Demo
 
+### 🔊 With audio (recommended)
+
+https://github.com/sumanthmukkala/bolo/raw/main/assets/demo-audio.mp4
+
+Click to hear the voice and watch the HUD subtitle pin to the bottom of the terminal, advance per sentence in sync with the audio, and get cut mid-sentence by `bolo --hush`.
+
+### 👁 Silent visual (loads instantly)
+
 ![Bolo demo — HUD subtitle synced to playback](./assets/demo.svg)
 
-The HUD line rewrites itself in place as the audio progresses. The recording is silent (asciinema captures terminal text only, not audio) — install Bolo locally to hear the voice. The visual sync is what makes Bolo distinctive.
+The HUD rewrites itself in place as the voice progresses. Asciinema captures terminal text only, not audio — install Bolo locally to hear the voice. The MP4 above carries both.
 
 ---
 
