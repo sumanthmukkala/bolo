@@ -42,12 +42,15 @@ echo
 echo '$ bolo "Long sentence to interrupt..." &'
 echo '$ bolo --hush     # in another terminal'
 sleep 0.8
-"$BOLO" "This is a long sentence that I am about to interrupt mid-flow, just to show the hush flag in action across terminals." &
+"$BOLO" "This is a long sentence that I am about to interrupt mid-flow, just to show the hush flag in action across terminals, killing audio instantly from any shell." &
 BOLO_PID=$!
-sleep 3.5
+# Wait long enough for cold-load (~3-5s) PLUS a few seconds of actual audio
+# playback before hush fires. Otherwise hush cuts in before voice even starts
+# and the demo looks broken to a viewer.
+sleep 8
 "$BOLO" --hush
 wait "$BOLO_PID" 2>/dev/null
-sleep 0.5
+sleep 1
 echo
 
 # ---- Outro ----
