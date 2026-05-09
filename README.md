@@ -43,9 +43,9 @@ The HUD subtitle requires a real terminal to render its ANSI escape codes — it
 
 ### 🔊 With audio (recommended)
 
-https://github.com/sumanthmukkala/bolo/raw/main/assets/demo-audio.mp4
+<video src="https://github.com/sumanthmukkala/bolo/raw/main/assets/demo-audio.mp4" controls width="100%"></video>
 
-Click to hear the voice and watch the HUD subtitle pin to the bottom of the terminal, advance per sentence in sync with the audio, and get cut mid-sentence by `bolo --hush`.
+Hear the voice and watch the HUD subtitle pin to the bottom of the terminal, advance per sentence in sync with the audio, and get cut mid-sentence by `bolo --hush`. ([Direct download](./assets/demo-audio.mp4) if your browser doesn't inline-play.)
 
 ### 👁 Silent visual (loads instantly)
 
