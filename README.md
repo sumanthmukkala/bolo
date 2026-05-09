@@ -43,7 +43,7 @@ The HUD subtitle requires a real terminal to render its ANSI escape codes — it
 
 ### 🔊 With audio (recommended)
 
-<video src="https://github.com/sumanthmukkala/bolo/releases/download/v0.1.0/demo-audio.mp4" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/3a5737f1-2b72-406a-936e-fe726034b9d4" controls width="100%"></video>
 
 Hear the voice and watch the HUD subtitle pin to the bottom of the terminal, advance per sentence in sync with the audio, and get cut mid-sentence by `bolo --hush`. ([Direct download](./assets/demo-audio.mp4) if your browser doesn't inline-play.)
 
