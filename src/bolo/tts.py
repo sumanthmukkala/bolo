@@ -344,7 +344,7 @@ def main():
     p.add_argument("--voice", help="Override voice from config")
     p.add_argument("--speed", type=float, help="Override speed from config")
     p.add_argument("--no-play", action="store_true", help="Generate audio file but don't play")
-    p.add_argument("--lang", default="en-us", help="Language hint (en-us, en-gb, hi)")
+    p.add_argument("--lang", default=None, help="Language hint (en-us, en-gb, hi, ja, it, es, pt, fr, zh). Default: en-us — pass explicitly when feeding non-English text.")
     p.add_argument("--list-voices", action="store_true", help="Print all available voices and exit")
     p.add_argument("--hush", action="store_true", help="Full dead stop: kill audio and exit the running Bolo. Does NOT touch the next assistant turn.")
     p.add_argument("--skip-paragraph", action="store_true", help="Skip the current paragraph, continue with the rest of the response.")
@@ -388,15 +388,14 @@ def main():
     voice = args.voice or cfg.get("active_voice", "am_michael")
     speed = args.speed if args.speed is not None else cfg.get("speed", 1.0)
 
-    # Pick lang from voice prefix unless overridden
-    lang = args.lang
-    if not args.lang or args.lang == "en-us":
-        if voice.startswith("b"):
-            lang = "en-gb"
-        elif voice.startswith("h"):
-            lang = "hi"
-        elif voice.startswith("a"):
-            lang = "en-us"
+    # Default to English G2P for every voice. The earlier voice-prefix auto-derivation
+    # forced Hindi G2P for hf_*/hm_*, Japanese for jf_*/jm_*, Italian for if_*/im_*,
+    # etc. — which made non-English-trained voices add native-language phonetic
+    # artefacts (trailing schwa, mora-final vowels) when reading English text.
+    # Bolo's primary use case is English from agent CLIs, so en-us is the right
+    # universal default. Pass `--lang hi` (or `ja`, `it`, ...) explicitly when
+    # feeding non-English text.
+    lang = args.lang or "en-us"
 
     if args.text:
         text = " ".join(args.text)
