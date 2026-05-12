@@ -98,7 +98,7 @@ if [[ -d "$CLAUDE_DIR" ]]; then
   say "Installing Claude Code slash commands into $CLAUDE_DIR/commands/..."
   mkdir -p "$CLAUDE_DIR/commands"
   cp "$REPO_DIR/commands/"*.md "$CLAUDE_DIR/commands/"
-  ok "slash commands installed (/speak, /spa, /voice)"
+  ok "slash commands installed (/speak, /spa, /spi, /voice, /hush)"
 else
   warn "Claude Code dir ($CLAUDE_DIR) not found — skipping slash command install."
 fi
@@ -132,5 +132,5 @@ printf '\n'
 printf 'Add to PATH (optional):\n'
 printf '  echo '"'"'export PATH="%s/bin:$PATH"'"'"' >> ~/.zshrc\n' "$BOLO_HOME"
 printf '\n'
-printf 'In Claude Code: /speak, /spa, /voice slash commands are ready.\n'
+printf 'In Claude Code: /speak, /spa, /spi, /voice, /hush slash commands are ready.\n'
 printf 'Docs: %s/README.md\n' "$REPO_DIR"

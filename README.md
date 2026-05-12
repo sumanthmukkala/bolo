@@ -4,7 +4,7 @@
 
 Bolo (Hindi: *"speak"*) reads any text aloud through your terminal using a fully local Kokoro TTS model — no API calls, no tokens, no network. While the audio plays, a single-line subtitle HUD appears in the input area at the bottom of your terminal and advances in sync with the voice, so you can glance down to see exactly where in the text the voice is right now without having to re-read from the top.
 
-**Designed for terminal-native AI agents.** Bolo reads responses from agentic CLIs out loud — Claude Code, Hermes, Codex CLI, Aider, Cursor's terminal, Open Hands, and any other agent that prints to a terminal. Claude Code has the deepest integration: auto-read via Stop hook, plus `/speak`, `/voice`, and `/hush` slash commands. Other agents use the `bolo` CLI directly or via a tool-specific skill — see [`docs/usage.md`](./docs/usage.md).
+**Designed for terminal-native AI agents.** Bolo reads responses from agentic CLIs out loud — Claude Code, Hermes, Codex CLI, Aider, Cursor's terminal, Open Hands, and any other agent that prints to a terminal. Claude Code has the deepest integration: auto-read via Stop hook, plus `/speak`, `/spa` (American voice), `/spi` (Indian voice), `/voice`, and `/hush` slash commands. Other agents use the `bolo` CLI directly or via a tool-specific skill — see [`docs/usage.md`](./docs/usage.md).
 
 **Also useful as a plain terminal tool**, with no agent required. Pipe any text in: `cat article.md | bolo`, `pbpaste | bolo`, `curl -s url | bolo`. Listen to docs and articles while you write code in another window, get accessibility-friendly read-aloud for low-vision users, or use it for dictation-driven workflows where you want eyes free.
 
@@ -19,7 +19,7 @@ Bolo (Hindi: *"speak"*) reads any text aloud through your terminal using a fully
 - **Sentence-accurate sync.** Word and punctuation-weighted timing keeps the subtitle aligned with the voice even on long, comma-heavy prose.
 - **Smooth paragraph prosody.** Each paragraph synthesised in one Kokoro call so the audio flows naturally — no robotic per-sentence breaks.
 - **Pipelined synthesis.** Producer-consumer queue means the next paragraph is synthesised in a background thread while the current one plays. Zero gaps between paragraphs after the first.
-- **Claude Code integration.** Stop hook auto-reads each response. Slash commands `/speak`, `/voice`. Works in Warp, iTerm2, and the macOS terminal.
+- **Claude Code integration.** Stop hook auto-reads each response. Slash commands `/speak`, `/spa` (American voice shortcut), `/spi` (Indian voice shortcut), `/voice`, `/hush`. Works in Warp, iTerm2, and the macOS terminal.
 - **54 voices, 9 languages.** American, British, Hindi, Spanish, French, Italian, Japanese, Mandarin, Portuguese — both genders.
 
 ---
@@ -70,7 +70,7 @@ flowchart TD
     G --> I[Install scripts to ~/.local/share/bolo/bin/]
     H --> I
     I --> J{Claude Code installed?}
-    J -->|Yes| K[Copy /speak /voice slash commands to ~/.claude/commands/]
+    J -->|Yes| K[Copy /speak /spa /spi /voice /hush slash commands to ~/.claude/commands/]
     J -->|No| L[Skip slash command install]
     K --> M[Print Stop hook snippet for ~/.claude/settings.json]
     L --> N[Done — Bolo CLI ready]
@@ -97,7 +97,7 @@ flowchart TD
 | `afplay` | bundled | ships with macOS |
 | `curl`   | bundled | ships with macOS |
 | `jq`     | optional but recommended | `brew install jq` (only needed for Stop-hook auto-read flow) |
-| **Claude Code** | optional | needed only for `/speak` & `/voice` slash commands and the Stop-hook integration |
+| **Claude Code** | optional | needed only for `/speak`, `/spa`, `/spi`, `/voice`, `/hush` slash commands and the Stop-hook integration |
 
 ### Installing Python 3.10+
 
@@ -130,7 +130,7 @@ The installer:
 3. Downloads the Kokoro ONNX model and voices file (one-time, ~330 MB combined)
 4. Copies the Bolo scripts into `~/.local/share/bolo/bin/`
 5. Writes a default `config.json` if none exists
-6. If Claude Code is installed, copies `/speak` and `/voice` slash commands into `~/.claude/commands/`
+6. If Claude Code is installed, copies `/speak`, `/spa`, `/spi`, `/voice`, and `/hush` slash commands into `~/.claude/commands/`
 7. Optionally prints the Stop-hook snippet for `~/.claude/settings.json`
 
 To put `bolo` on your PATH:
@@ -149,7 +149,9 @@ The full table — everything you can do, in every environment.
 | What you want | Claude Code (slash) | Standalone CLI / any terminal |
 |---|---|---|
 | **Speak text now** | `/speak <text>` | `bolo "<text>"` &nbsp;or&nbsp; `echo "<text>" \| bolo` |
-| **Read last response** | `/speak last` | (Claude Code only) |
+| **Speak text — American voice** | `/spa <text>` | `bolo --voice am_michael "<text>"` |
+| **Speak text — Indian voice** | `/spi <text>` | `bolo --voice hf_alpha "<text>"` |
+| **Read last response** | `/speak last` &nbsp;·&nbsp; `/spa last` &nbsp;·&nbsp; `/spi last` | (Claude Code only) |
 | **Auto-read every response — ON** | `/speak auto on` | `jq '.auto_read=true' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
 | **Auto-read every response — OFF** | `/speak auto off` | `jq '.auto_read=false' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
 | **Hush — full dead stop on current response** | `/hush` | `bolo --hush` |

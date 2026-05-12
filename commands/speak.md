@@ -42,18 +42,18 @@ echo "✓ next auto-read skipped"
 
 ### Mode 4: `/speak last`
 
-Read your most recent assistant message aloud right now.
+Read your most recent assistant message aloud right now. stderr → Claude Code's parent TTY so HUD subtitle lands in the prompt strip, not the Bash tool output. Backgrounded so the slash command returns immediately.
 
 ```bash
-echo "<your last response text>" | "${BOLO_HOME:-$HOME/.local/share/bolo}/bin/bolo"
+( echo "<your last response text>" | "${BOLO_HOME:-$HOME/.local/share/bolo}/bin/bolo" >/dev/null 2>/dev/$(ps -o tty= -p $PPID | tr -d ' ') ) &
 ```
 
 ### Mode 5: `/speak <text>`
 
-Read provided text aloud:
+Read provided text aloud. stderr → Claude Code's parent TTY so HUD subtitle shows in the prompt strip, not the tool output. Backgrounded.
 
 ```bash
-"${BOLO_HOME:-$HOME/.local/share/bolo}/bin/bolo" "<text from user>"
+( "${BOLO_HOME:-$HOME/.local/share/bolo}/bin/bolo" "<text from user>" >/dev/null 2>/dev/$(ps -o tty= -p $PPID | tr -d ' ') ) &
 ```
 
 ### Mode 6: `/speak` (no args)
