@@ -149,7 +149,7 @@ The full table — everything you can do, in every environment.
 | What you want | Claude Code (slash) | Standalone CLI / any terminal |
 |---|---|---|
 | **Speak text now** | `/speak <text>` | `bolo "<text>"` &nbsp;or&nbsp; `echo "<text>" \| bolo` |
-| **Speak text — American voice** | `/spa <text>` | `bolo --voice am_puck "<text>"` |
+| **Speak text — American voice** | `/spa <text>` | `bolo --voice am_michael "<text>"` |
 | **Speak text — Indian voice** | `/spi <text>` | `bolo --voice hf_alpha "<text>"` |
 | **Read last response** | `/speak last` &nbsp;·&nbsp; `/spa last` &nbsp;·&nbsp; `/spi last` | (Claude Code only) |
 | **Auto-read every response — ON** | `/speak auto on` | `jq '.auto_read=true' ~/.local/share/bolo/config.json \| sponge ~/.local/share/bolo/config.json` |
