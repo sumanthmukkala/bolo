@@ -49,8 +49,24 @@ last_text=$(jq -rs '
 [ -z "$last_text" ] && exit 0
 
 # Speak in background so the Stop hook returns immediately.
-# stderr → /dev/tty so the HUD subtitle line is visible in the user's terminal.
-( printf '%s' "$last_text" | "$TTS_CMD" >/dev/null 2>/dev/tty ) &
+# stderr → user's actual tty (walked up process tree) so HUD subtitle shows.
+# Stop hooks run without a controlling terminal, so /dev/tty fails outright —
+# fall back to /dev/null (audio still plays) if no ancestor pty found.
+find_user_tty() {
+  local pid=$PPID
+  while [ -n "$pid" ] && [ "$pid" != "1" ]; do
+    local tty
+    tty=$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')
+    if [ -n "$tty" ] && [ "$tty" != "?" ] && [ "$tty" != "??" ]; then
+      echo "/dev/$tty"
+      return 0
+    fi
+    pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+  done
+  echo "/dev/null"
+}
+HUD_OUT=$(find_user_tty)
+( printf '%s' "$last_text" | "$TTS_CMD" >/dev/null 2>"$HUD_OUT" ) &
 
 # Log (truncated to last ~50 entries).
 {
